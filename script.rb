@@ -4,6 +4,24 @@ class Computer
 
   @code = ''
 
+  def try_guess(guess)
+    # a hash where colors and positions are locked
+    # the guess is then built each round with the hash + filter + trying new colors
+
+    # pick a random color from COLOR_ARRAY - cannot be already tried or filter color
+    # input this color
+    # based on feedback, do one of the following:
+      # if no red feedback, save this color as filter and move to another color (or previously remembered)
+      # if no red feedback, but useless color already defined, move to another color
+      # if red feedback, and no useless color - remember this color and move to another
+      # if red feedback, and useless color defined - lock the color
+    
+    # set this color to the first available spot and fill the rest with filter
+    # if red feedback decreases, try another availible spot
+    # if red feedback stays the same - lock this position
+    # repeat with another color
+  end
+
   def set_code
     @code = generate_code(COLOR_ARRAY).join
   end
@@ -89,12 +107,16 @@ for i in 1..12
   end
 
   guess_array = player.guess(guess)
-  break if computer.give_feedback(guess)
-
+  if computer.give_feedback(guess)
+    puts 'The code was:'
+    puts code_array.join()
+    exit
+  end
 end
-puts 'The code was:'
+puts 'You lose! The code was:'
 puts code_array.join()
 
+
 # TODO:
-# add termination when the code is guessed correctly
-# fix white feedback on guessing same color more times in one turn
+# add termination and message on lose
+# start building the algo
