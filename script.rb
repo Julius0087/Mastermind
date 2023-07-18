@@ -20,12 +20,23 @@ class Computer
       end
     end
 
+    if red_feedback == 4
+      puts 'Correct combination guessed, you win!'
+      return true
+    end
+
     white_feedback = 0
+    white_feedback_array = []
     remaining_array = guess.difference(red_feedback_array)
     remaining_array.each do |color|
-      white_feedback += 1 if code_array.include?(color)
+      # make sure it's not counting the same color twice
+      if code_array.include?(color) && white_feedback_array.none? { |n| n == color }
+        white_feedback += 1
+        white_feedback_array.push(color)
+      end
     end
-    "You guessed #{red_feedback} colors at the correct position and #{white_feedback} correct colors at the wrong position."
+    puts "You guessed #{red_feedback} colors at the correct position and #{white_feedback} correct colors at the wrong position."
+    false
   end
 
   private
@@ -78,11 +89,12 @@ for i in 1..12
   end
 
   guess_array = player.guess(guess)
-  puts computer.give_feedback(guess)
+  break if computer.give_feedback(guess)
 
 end
-puts code_array.split(' ')
+puts 'The code was:'
+puts code_array.join()
 
 # TODO:
-# make sure code isn't accessible, only inside the computer class (try making it a class variable @@)
-# add proper 12 turns and prompts, conversion to arrays
+# add termination when the code is guessed correctly
+# fix white feedback on guessing same color more times in one turn
