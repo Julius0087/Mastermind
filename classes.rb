@@ -26,17 +26,48 @@ end
 class ComputerCodeBreaker
   def initialize
     @already_guessed_arr = []
-    @guess_arr = Array.new(4) { {locked: false, current_color: nil, color: nil} } # elegantize this - array of hashes
+    @to_try_arr = []
+    @guess_arr = Array.new(4) { {locked: false, current_color: nil, color: nil} }
     @filter_color = nil
+    @last_round_red = nil
   end
 
-  def try_guess
+  def play_game(code)
+    # 12.times do
+      self.try_guess(code)
+    # end
+  end
+
+  def try_guess(code)
     # a hash where colors and positions are locked
     # the guess is then built each round with the hash + filter + trying new colors
-    input = pick_a_color
-    
+    color = pick_a_color
 
-    p @guess_arr
+    new_guess = []
+    @guess_arr.each do |hash|
+      new_guess.push(hash[:current_color])
+    end
+
+    feedback = give_feedback(new_guess.join, code.split(''))
+    red = feedback[0]
+
+    if red == 0 || red == @last_round_red
+      if @filter_color == nil # elegantize?
+        @filter_color = color
+      end
+    else
+      if @filter_color == nil
+        @to_try_arr.push color
+      else
+        # find the first unlocked spot, lock it with the current color
+        index = @guess_arr.find_index { |hash| hash[:locked] == false }
+        @guess_arr[index][:locked] = true
+        @guess_arr[index][:current_color] = color
+      end
+    end
+
+
+    
     # pick a random color from COLOR_ARRAY - cannot be already tried or filter color
     # input this color
     # based on feedback, do one of the following:
@@ -52,12 +83,14 @@ class ComputerCodeBreaker
   end
 
   def pick_a_color
+    # populate an array with the chosen color
     color = COLOR_ARRAY.sample
-    @guess_arr.each_with_index do |item, index|
+    @guess_arr.each do |item|
       unless item[:locked]
         item[:current_color] = color
       end
     end
+    color
   end
 end
 
@@ -65,6 +98,35 @@ class Player
 
   def guess(string)
     string.upcase.split('')
+  end
+
+  def input_code
+    puts 'Enter your secret code:'
+    loop do
+      input = gets.chomp.upcase
+      return input if check_input(input) && check_duplicates(input)
+    end
+  end
+
+  def player_breaks(code_array)
+    for i in 1..12
+      puts "Round #{i}. Guess the colors."
+      input = ''
+      loop do
+        input = gets.chomp.upcase
+        break if check_input(input)
+      end
+  
+      guess_array = self.guess(input)
+      result = give_feedback(input, code_array)
+      if result == true
+        puts 'The code was:'
+        puts code_array.join()
+        exit
+      end
+    end
+    puts 'You lose! The code was:'
+    puts code_array.join()
   end
 end
 

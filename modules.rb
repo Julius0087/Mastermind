@@ -1,11 +1,10 @@
 module Feedback
-  def give_feedback(guess, code)
-    guess = guess.split('')
-    code_array = code.split('')
+  def give_feedback(input, code_array)
+    input = input.split('')
 
     red_feedback = 0
     red_feedback_array = []
-    guess.each_with_index do |color, index|
+    input.each_with_index do |color, index|
       if code_array[index] == color
         red_feedback += 1
         red_feedback_array.push(color)
@@ -19,7 +18,7 @@ module Feedback
 
     white_feedback = 0
     white_feedback_array = []
-    remaining_array = guess.difference(red_feedback_array)
+    remaining_array = input.difference(red_feedback_array)
     remaining_array.each do |color|
       # make sure it's not counting the same color twice
       if code_array.include?(color) && white_feedback_array.none? { |n| n == color }
@@ -33,6 +32,7 @@ module Feedback
 end
 
 module Validity
+
   def check_validity(array)
     array.each do |item|
       unless COLOR_ARRAY.include?(item)
@@ -42,16 +42,22 @@ module Validity
     end
   end
 
-  def check_input
-    loop do
-      guess = gets.chomp.upcase
-      if guess.match?(/[A-Z]/) && guess.length == 4 && check_validity(guess.split(''))
-        break
-      else
-        puts 'Invalid guess. Select only four of color letters (R, G, B, Y, W, P)'
-      end
+  def check_input(input)
+    if input.match?(/[A-Z]/) && input.length == 4 && check_validity(input.split(''))
+      return true
+    else
+      puts 'Invalid input. Select four of color letters (R, G, B, Y, W, P)'
+      return false
     end
-    guess
+  end
+
+  def check_duplicates(input)
+    arr = input.split('')
+    if arr.uniq.length == arr.length
+      return true
+    else
+      puts 'Invalid input. No duplicates allowed.'
+      return false
+    end
   end
 end
-
