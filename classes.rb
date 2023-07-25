@@ -25,50 +25,68 @@ end
 
 class ComputerCodeBreaker
   def initialize
+    @color = nil
     @already_guessed_arr = []
     @to_try_arr = []
+    @indexes_to_guess = [0, 1, 2, 3]
     @guess_arr = Array.new(4) { {locked: false, current_color: nil, color: nil} }
     @filter_color = nil
-    @last_round_red = nil
+    @last_round_red = 0
+    @awaiting_position_feedback = false
+    @last_locked_index = nil
+    @target_feedback = nil
   end
 
   def play_game(code)
-    # 12.times do
+    12.times do
       self.try_guess(code)
-    # end
+    end
   end
 
   def try_guess(code)
-    # a hash where colors and positions are locked
-    # the guess is then built each round with the hash + filter + trying new colors
-    color = pick_a_color
+    unless @awaiting_position_feedback
+      if @to_try_arr.empty? || @filter_color.nil?
+        @color = pick_a_color
+        self.try_color(@color)
+      else
+        @color = @to_try_arr[0]
+        @to_try_arr.delete_at(0)
+        puts 'trying color'
+        self.try_position(@color)
+      end
+    end
 
+    # build the guess code from the hash array
     new_guess = []
     @guess_arr.each do |hash|
       new_guess.push(hash[:current_color])
     end
 
+    p new_guess
     feedback = give_feedback(new_guess.join, code.split(''))
+    exit if feedback == 'win'
     red = feedback[0]
 
-    if red == 0 || red == @last_round_red
-      if @filter_color == nil # elegantize?
-        @filter_color = color
+    @target_feedback = self.select_target_feedback
+
+    # feedback handling
+    if @filter_color.nil?
+      if red == 0
+        @filter_color = @color
+      elsif red == 1
+        @to_try_arr.push(@color)
       end
+    elsif red == @target_feedback - 1 && @awaiting_position_feedback == false
+      @already_guessed_arr.push(@color)
+    elsif red == @target_feedback && @awaiting_position_feedback == true
+      self.lock_position(@color)
     else
-      if @filter_color == nil
-        @to_try_arr.push color
-      else
-        # find the first unlocked spot, lock it with the current color
-        index = @guess_arr.find_index { |hash| hash[:locked] == false }
-        @guess_arr[index][:locked] = true
-        @guess_arr[index][:current_color] = color
-      end
+      self.try_position(@color)
     end
 
+    @last_round_red = red
 
-    
-    # pick a random color from COLOR_ARRAY - cannot be already tried or filter color
+    # pick a random color from COLOR_ARRAY - cannot be already tried or filter color or to_try
     # input this color
     # based on feedback, do one of the following:
       # if no red feedback, save this color as filter and move to another color (or previously remembered)
@@ -83,14 +101,70 @@ class ComputerCodeBreaker
   end
 
   def pick_a_color
-    # populate an array with the chosen color
-    color = COLOR_ARRAY.sample
+    # pick a random color - not already guessed, not filter, not those that are to be tried later
+    available = COLOR_ARRAY.difference(@already_guessed_arr, @to_try_arr, [@filter_color])
+    return available.sample
+  end
+
+  def try_color(color)
+    # fill all unlocked spots with this color
     @guess_arr.each do |item|
       unless item[:locked]
         item[:current_color] = color
       end
     end
-    color
+  end
+
+  def try_position(color)
+    # pick an index to guess
+    index = @indexes_to_guess[0]
+    puts index
+
+    @guess_arr[index][:current_color] = color
+    @guess_arr[index][:locked] = true
+    
+    # unlock the previously locked
+    unless @last_locked_index.nil?
+      @guess_arr[@last_locked_index][:locked] = false
+    end
+    @last_locked_index = index
+    @indexes_to_guess.delete_at(0)
+
+    # fill the rest with filter
+    @guess_arr.each do |hash|
+      unless hash[:locked]
+        hash[:current_color] = @filter_color
+      end
+    end
+    @awaiting_position_feedback = true
+  end
+
+  def lock_position(color)
+    @guess_arr.each do |hash|
+      if hash[:current_color] == color
+        hash[:color] = color
+      end
+    end
+    @awaiting_position_feedback = false
+    @last_locked_index = nil
+    @already_guessed_arr.push(color)
+    @indexes_to_guess = []
+    @guess_arr.each_with_index do |hash, index|
+      if hash[:locked] == false
+        @indexes_to_guess.push(index)
+      end
+    end
+    puts 'position locked'
+  end
+
+  def select_target_feedback
+    feedback = 0
+    @guess_arr.each do |hash|
+      unless hash[:color].nil?
+        feedback += 1
+      end
+    end
+    feedback + 1
   end
 end
 

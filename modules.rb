@@ -13,7 +13,7 @@ module Feedback
 
     if red_feedback == 4
       puts 'Correct combination guessed, codebreaker wins!'
-      return true
+      return 'win'
     end
 
     white_feedback = 0

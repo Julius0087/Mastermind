@@ -36,14 +36,8 @@ end
 
 
 # TODO:
-# make the game work again
-# player class refactor
-# new give feedback method for the computer codebreaker
-# module for methods that both computers share
-# structure game into rounds
+# if only one position remaining - don't bother trying, set automatically
 
 # DONE:
-# player codebreaking now functional again
-# player codemaking validity check
-# computer codebreaker can now input random colors
-# algorithm prototype
+# method refactor in computer codebreaker class
+# working algorithm - can now guess the code with enough turns
