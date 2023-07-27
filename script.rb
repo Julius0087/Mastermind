@@ -25,19 +25,12 @@ else
   code = player.input_code
   computer.play_game(code)
 end
-# game.player_breaks
-# game.player_makes
-
-
-# testing
-# computer_codebreaker = ComputerCodeBreaker.new
-# computer_codebreaker.try_guess
-
-
 
 # TODO:
-# if only one position remaining - don't bother trying, set automatically
+# testing and upload
 
 # DONE:
-# method refactor in computer codebreaker class
-# working algorithm - can now guess the code with enough turns
+# optimizating algorithm - computer now skips the last logical position and locks it and moves to another color
+# fixed player codebreaking termination when won
+# added a sleep method to slow down computer breaking output
+# added round numbering and changed guessed code to string instead of an array

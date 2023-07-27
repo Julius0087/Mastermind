@@ -38,8 +38,10 @@ class ComputerCodeBreaker
   end
 
   def play_game(code)
-    12.times do
+    for i in 1..12
+      puts "Round #{i}. Codebreaker guesses the colors."
       self.try_guess(code)
+      sleep(1.5)
     end
   end
 
@@ -47,11 +49,11 @@ class ComputerCodeBreaker
     unless @awaiting_position_feedback
       if @to_try_arr.empty? || @filter_color.nil?
         @color = pick_a_color
+        # puts 'trying new color'
         self.try_color(@color)
       else
         @color = @to_try_arr[0]
         @to_try_arr.delete_at(0)
-        puts 'trying color'
         self.try_position(@color)
       end
     end
@@ -62,12 +64,12 @@ class ComputerCodeBreaker
       new_guess.push(hash[:current_color])
     end
 
-    p new_guess
+    p new_guess.join
+    @target_feedback = self.select_target_feedback
     feedback = give_feedback(new_guess.join, code.split(''))
     exit if feedback == 'win'
     red = feedback[0]
-
-    @target_feedback = self.select_target_feedback
+    # puts "Target feedback: #{@target_feedback}, awaiting: #{@awaiting_position_feedback}"
 
     # feedback handling
     if @filter_color.nil?
@@ -85,19 +87,6 @@ class ComputerCodeBreaker
     end
 
     @last_round_red = red
-
-    # pick a random color from COLOR_ARRAY - cannot be already tried or filter color or to_try
-    # input this color
-    # based on feedback, do one of the following:
-      # if no red feedback, save this color as filter and move to another color (or previously remembered)
-      # if no red feedback, but useless color already defined, move to another color
-      # if red feedback, and no useless color - remember this color and move to another
-      # if red feedback, and useless color defined - lock the color
-    
-    # set this color to the first available spot and fill the rest with filter
-    # if red feedback decreases, try another availible spot
-    # if red feedback stays the same - lock this position
-    # repeat with another color
   end
 
   def pick_a_color
@@ -118,7 +107,6 @@ class ComputerCodeBreaker
   def try_position(color)
     # pick an index to guess
     index = @indexes_to_guess[0]
-    puts index
 
     @guess_arr[index][:current_color] = color
     @guess_arr[index][:locked] = true
@@ -129,7 +117,7 @@ class ComputerCodeBreaker
     end
     @last_locked_index = index
     @indexes_to_guess.delete_at(0)
-
+    
     # fill the rest with filter
     @guess_arr.each do |hash|
       unless hash[:locked]
@@ -137,6 +125,10 @@ class ComputerCodeBreaker
       end
     end
     @awaiting_position_feedback = true
+    if @indexes_to_guess.empty?
+      # puts 'locked from try'
+      self.lock_position(color)
+    end
   end
 
   def lock_position(color)
@@ -154,7 +146,7 @@ class ComputerCodeBreaker
         @indexes_to_guess.push(index)
       end
     end
-    puts 'position locked'
+    # puts 'position locked'
   end
 
   def select_target_feedback
@@ -184,7 +176,7 @@ class Player
 
   def player_breaks(code_array)
     for i in 1..12
-      puts "Round #{i}. Guess the colors."
+      puts "Round #{i}. Codebreaker guesses the colors."
       input = ''
       loop do
         input = gets.chomp.upcase
@@ -193,7 +185,7 @@ class Player
   
       guess_array = self.guess(input)
       result = give_feedback(input, code_array)
-      if result == true
+      if result == 'win'
         puts 'The code was:'
         puts code_array.join()
         exit
